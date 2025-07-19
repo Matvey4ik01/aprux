@@ -24,6 +24,7 @@
         .fastfetch-container { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; justify-content: flex-start; }
         .ascii-art pre { font-size: 1.1em; line-height: 1.1; color: var(--blue); flex-shrink: 0; }
         .info-block { flex-grow: 1; }
+        #matrix-canvas { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; pointer-events: none; }
         @media (max-width: 768px) {
             .fastfetch-container { flex-direction: column; align-items: flex-start; gap: 1rem; }
             .ascii-art { display: none; }
@@ -33,6 +34,7 @@
     </style>
 </head>
 <body>
+    <canvas id="matrix-canvas"></canvas>
     <div id="terminal" onclick="document.getElementById('command-input').focus()">
         <div id="output"></div>
         <div class="input-line-container">
@@ -138,6 +140,10 @@
         let matrixAnimationId;
         function runMatrix() {
             const canvas = document.getElementById('matrix-canvas');
+            if (!canvas) {
+                printToTerminal('Ошибка: Canvas не найден!');
+                return;
+            }
             const ctx = canvas.getContext('2d');
             canvas.style.display = 'block';
             inputContainer.style.display = 'none';
@@ -160,18 +166,18 @@
                 }
             };
             matrixAnimationId = setInterval(draw, 30);
-            window.addEventListener('keydown', stopMatrix, { once: true });
-            window.addEventListener('click', stopMatrix, { once: true });
-        }
-
-        function stopMatrix() {
-            clearInterval(matrixAnimationId);
-            const canvas = document.getElementById('matrix-canvas');
-            canvas.style.display = 'none';
-            inputContainer.style.display = 'flex';
-            input.focus();
-            window.removeEventListener('keydown', stopMatrix);
-            window.removeEventListener('click', stopMatrix);
+            
+            const stopMatrixHandler = (e) => {
+                clearInterval(matrixAnimationId);
+                canvas.style.display = 'none';
+                inputContainer.style.display = 'flex';
+                input.focus();
+                window.removeEventListener('keydown', stopMatrixHandler);
+                window.removeEventListener('click', stopMatrixHandler);
+            };
+            
+            window.addEventListener('keydown', stopMatrixHandler, { once: true });
+            window.addEventListener('click', stopMatrixHandler, { once: true });
         }
 
         function cowsay(text) {
@@ -198,10 +204,12 @@
         
         const commands = {
             'fastfetch': () => {
-                const asciiArt = [
-                    '                   -\`', '                  .o+\`', '                 \`ooo/', '                \`+oooo:', '               \`+oooooo:', '               -+oooooo+:', '             \`/:--+oooooo:', '            \`/o+o:- \`+oooooo:', '           \`+o+o+o/-  \`o+oooooo:', '          \`oo+o+o+o+:\`-\`+oooooo:', '         \`:o+o+o+o+o+:\`o+oooooo:', '         \`::o+o+o+o+o+o+\`+oooooo:', '        \`::::o+o+o+o+o+o+\`+oooooo:', '       \`:::::o+o+o+o+o+o+o\`+oooooo:', '      .::::::::o+o+o+o+o+o+\`+oooooo:', '     .::::::::::o+o+o+o+o+o+\`+oooooo+:', '    \`::::::::::::o+o+o+o+o+o+\`+oooooo+:\`', '   \`::::::::::::::o+o+o+o+o+o+\`+ooooo+:\`', '  \`::::::::::::::::o+o+o+o+o+o+\`+oooo+:\`', ' \`::::::::::::::::::o+o+o+o+o+o+\`+ooo+:\`', ' \`::::::::::::::::::o+o+o+o+o+o+o+\`+o+:\`', ' \`:::::::::::::::::::o+o+o+o+o+o+o+\`+:\`', ' \`::::::::::::::::::::o+o+o+o+o+o+o+\`', ' \`:::::::::::::::::::::o+o+o+o+o+o+\`', '  \`::::::::::::::::::::::o+o+o+o+o\`', '   \`:::::::::::::::::::::o+o+o+o\`', '    \`::::::::::::::::::::o+o+o+\`', '      \`:::::::::::::::::o+o+\`', '        \`::::::::::::o+o+\`', '           \`::::::::o+\`', '             \`:::::+\`'
-                ].join('\n');
-                const info = `<span class="text-magenta">aprux</span><span class="text-white">@</span><span class="text-magenta">portfolio</span>\n--------------------\n<span class="text-mauve">status:</span>               <span class="text-fg">developer, genius, billionaire, playboy, philanthropist</span>\n<span class="text-mauve">langs:</span>                <span class="text-fg">Russian, English or Spanish</span>\n<span class="text-mauve">system:</span>               <span class="text-fg">I use Arch btw</span>\n<span class="text-mauve">devices:</span>              <span class="text-fg">quantum computer</span>\n<span class="text-mauve">projects:</span>             <span class="text-fg"><a href="https://apruxbot.t.me" target="_blank" rel="noopener noreferrer">apruxbot.t.me</a></span>\n<br>\n<span class="text-mauve">tg:</span>                   <span class="text-fg">@aprux</span>\n<span class="text-mauve">email:</span>                <span class="text-fg"><a href="mailto:i@aprux.ru">i@aprux.ru</a></span>`;
+                const asciiArt = `     _    ____  ____  _   ___  __
+    / \\  |  _ \\|  _ \\| | | \\ \\/ /
+   / _ \\ | |_) | |_) | | | |\\  / 
+  / ___ \\|  __/|  _ <| |_| |/  \\ 
+ /_/   \\_\\_|   |_| \\_\\\\___//_/\\_\\`;
+                const info = `<span class="text-magenta">aprux</span><span class="text-white">@</span><span class="text-magenta">portfolio</span>\n--------------------\n<span class="text-mauve">status:</span>               <span class="text-fg">developer, genius, billionaire, playboy, philanthropist</span>\n<span class="text-mauve">langs:</span>                <span class="text-fg">Russian, English or Spanish</span>\n<span class="text-mauve">system:</span>               <span class="text-fg">I use Arch btw</span>\n<span class="text-mauve">devices:</span>              <span class="text-fg">quantum computer</span>\n<span class="text-mauve">projects:</span>             <span class="text-fg"><a href="https://apruxbot.t.me" target="_blank" rel="noopener noreferrer">apruxbot.t.me</a></span>\n<br>\n<span class="text-mauve">tg:</span>                   <span class="text-fg"><a href="https://t.me/aprux" target="_blank" rel="noopener noreferrer">@aprux</a></span>\n<span class="text-mauve">email:</span>                <span class="text-fg"><a href="mailto:i@aprux.ru">i@aprux.ru</a></span>`;
                 const content = `<div class="fastfetch-container"><div class="ascii-art"><pre>${escapeHtml(asciiArt)}</pre></div><div class="info-block">${info}</div></div>`;
                 printToTerminal(content, true);
             },
@@ -333,29 +341,7 @@
                     return;
                 }
 
-                const editor = document.getElementById('nano-editor');
-                const textarea = document.getElementById('nano-textarea');
-                
-                textarea.value = file.content;
-                editor.style.display = 'flex';
-                textarea.focus();
-                
-                const nanoKeydownHandler = (e) => {
-                    if (e.ctrlKey) {
-                        if (e.key === 's') { 
-                            e.preventDefault();
-                            file.content = textarea.value;
-                            document.getElementById('nano-footer').textContent = "Файл сохранен! | ^Q Выход";
-                        } else if (e.key === 'q') {
-                            e.preventDefault();
-                            editor.style.display = 'none';
-                            document.getElementById('nano-footer').textContent = "^S Сохранить | ^Q Выход";
-                            window.removeEventListener('keydown', nanoKeydownHandler);
-                            input.focus();
-                        }
-                    }
-                };
-                window.addEventListener('keydown', nanoKeydownHandler);
+                printToTerminal('Редактор nano не реализован в веб-версии. Используйте cat для просмотра содержимого файлов.');
             },
             'sudo': async (args) => {
                 if (args.length === 0) {
@@ -368,8 +354,12 @@
 
                 const passwordInput = document.createElement('input');
                 passwordInput.type = 'password';
-                passwordInput.id = 'password-input';
-                passwordInput.className = 'bg-transparent border-none text-white font-mono w-full outline-none';
+                passwordInput.style.background = 'none';
+                passwordInput.style.border = 'none';
+                passwordInput.style.color = 'var(--fg)';
+                passwordInput.style.fontFamily = 'inherit';
+                passwordInput.style.width = '100%';
+                passwordInput.style.outline = 'none';
                 output.appendChild(passwordInput);
                 passwordInput.focus();
 
@@ -442,8 +432,8 @@
                     const weatherData = await weatherResponse.json();
                     const temp = weatherData.current_weather.temperature;
                     const weatherCode = weatherData.current_weather.weathercode;
-                    const weatherIcons = { 0: '', 1: '', 2: '', 3: '', 45: '', 48: '', 51: '', 53: '', 55: '', 61: '', 63: '', 65: '', 80: '', 81: '', 82: '', 95: '' };
-                    const icon = weatherIcons[weatherCode] || '';
+                    const weatherIcons = { 0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️', 45: '🌫️', 48: '🌫️', 51: '🌦️', 53: '🌦️', 55: '🌦️', 61: '🌧️', 63: '🌧️', 65: '🌧️', 80: '🌦️', 81: '🌦️', 82: '🌦️', 95: '⛈️' };
+                    const icon = weatherIcons[weatherCode] || '🌈';
                     printToTerminal(`Погода в <span class="text-yellow">${name}</span>: <span class="text-cyan">${temp}°C</span> ${icon}`, true);
                 } catch (error) {
                     printToTerminal(`<span class="text-red">Ошибка: ${error.message}</span>`, true);
@@ -561,6 +551,6 @@
         console.error("Critical error on init:", e);
     }
     </script>
+</body>
+</html>
 
-
-</body></html>
