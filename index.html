@@ -46,6 +46,11 @@
 
     <script>
     try {
+        // Проверка на переадресацию с tg.aprux.ru на t.me/aprux
+        if (window.location.hostname === 'tg.aprux.ru') {
+            window.location.replace('https://t.me/aprux');
+        }
+
         const terminal = document.getElementById('terminal');
         const output = document.getElementById('output');
         const input = document.getElementById('command-input');
